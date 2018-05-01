@@ -30,17 +30,15 @@ notdist_labels = double(imread(notdist_labels_path));
 %Processing : Image processing to extract 2 features
 
 % process distributed data
-featurevec = zeros(1,dist_num_files);
+dist_feat1 = zeros(1,dist_num_files);
+dist_feat2 = zeros(1,dist_num_files);
 for j=1:dist_num_files
-    img(:,:,:) = dist_img(j,:,:,:);
-    one  = img(:,:,1);
-    two = img(:,:,2);
-    three = img(:,:,3);
-    x = two;
-    img = x;
+    one  = dist_img(j,:,:,1);
+    two = dist_img(j,:,:,2);
+    three = dist_img(j,:,:,3);
+    img = two;
     img = img - min(min(img));
     img = (img./max(max(img)))*255;
-    %img = imsharpen(img,'Amount',1.5);
     % Windowing function
     a = 0.75*max(max(img));
     b = 0.9*max(max(img));
@@ -49,7 +47,6 @@ for j=1:dist_num_files
     rng = img>a & img<b;
     img_wind = 0*img;
     img_wind(rng) = img(rng)*slope + int;
-
     img = img_wind;
     img(img<=a) = 0;
     img(img>a) = 1;
@@ -59,81 +56,19 @@ for j=1:dist_num_files
     modimg = imdilate(img,se);
     img = modimg;
     % Count number of distinct spots and store this number in feature vector as a feature
-    xmax = size(img,1);
-    ymax = size(img,2);
-    old_reg_locx = [];
-    old_reg_locy = [];
-    seg_loc = 0*img;
-    seg_label = 0;
-    [row,col] = find(img);
-    for i = 1:size(row)
-        if(seg_loc(row(i),col(i))==0)
-            old_reg_locx = [];
-            old_reg_locy = [];
-            reg_locx = row(i);
-            reg_locy = col(i);
-            seg_label = seg_label+1;
-            while length(reg_locx)~=length(old_reg_locx)  
-                old_reg_locx = reg_locx;
-                old_reg_locy = reg_locy;
-                reg_locx = [old_reg_locx; old_reg_locx; old_reg_locx; old_reg_locx+1;...
-                    old_reg_locx-1];
-                reg_locy = [old_reg_locy; old_reg_locy-1; old_reg_locy+1; old_reg_locy;...
-                    old_reg_locy];
-                bad = reg_locx<1 | reg_locx>xmax | reg_locy<1 | reg_locy>ymax;
-                reg_locx = reg_locx(bad==0);
-                reg_locy = reg_locy(bad==0);
-                coord_all = [reg_locx, reg_locy];
-                coord_all = unique(coord_all, 'rows');
-                loc_linear = sub2ind(size(img), coord_all(:,1), coord_all(:,2));
-                seg_loc(loc_linear) = seg_label*img(loc_linear);
-                [reg_locx, reg_locy] = find(seg_loc == seg_label);
-            end
-        end
-    end
-    featurevec(j)=seg_label;
+    CC = bwconncomp(img);
+    dist_feat1(j) = CC.NumObjects; % Feature 1: Number of segments
+    dist_feat2(j) = length(find(img>0))/length(img(:));  % Feature 2: Percentage of image white after processing
 end
 
-figure
-scatter([1:numimages],featurevec);
-%%
+% process notdistributed data
 
-% for i=1:num_files
-%     img = double(imread(sprintf('%s/%s',path, files(i).name)));
-%     lower = 160;
-%     upper = 175;
-%     % img = 0.005*img_029(:,:,1)+1.55*img_029(:,:,2)+0.005*img_029(:,:,3);
-%     img = img(:,:,2);
-%     img(img<lower) = 0;
-%     img(img>upper) = 255;
-%     img(img>=lower & img<=upper) = (255/(upper-lower))*img(img>=lower & img<=upper) -255*lower/(upper-lower);
-% %     
-% %     figure
-% %     imagesc(img)
-% %     axis('image')
-% %     
-%     img(img<=250) = 0;
-%     img(img>250) = 1;
-% %     
-% %     figure
-% %     imagesc(img)
-% %     axis('image')
-%     
-%     CC = bwconncomp(img);
-%     
-%     seg_label_list(i) = CC.NumObjects;
-%     percentage_white(i) = length(find(img>0))/length(img(:));
-%     fig_list(i) = i;
-% end
-% figure
-% plot(fig_list,seg_label_list)
-% figure
-% plot(fig_list,percentage_white)
 
+%print 4 feature vetors
 dist_feat1
 dist_feat2
-notdist_feat1
-notdist_feat2
+% notdist_feat1
+% notdist_feat2
 
 
 %%
@@ -195,8 +130,8 @@ dist_acc2_knn = mean(pred(labels ==2)==2);
 %%
 % Section 1, Classifier 2 : 3 fold CV classification using LDA
 
-feat = [notdist_feat1; notdist_feat2]';
-labels = notdist_labels;
+feat = [dist_feat1; dist_feat2]';
+labels = dist_labels;
 
 % 3 fold CV
 folds1= repmat([1:3], 1, 6);
