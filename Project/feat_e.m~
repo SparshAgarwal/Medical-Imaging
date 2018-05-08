@@ -38,7 +38,7 @@ for j=1:dist_num_files
 
 
     % Windowing function
-    a = 0.74*max(max(img));
+    a = 0.77*max(max(img));
 %     b = 0.95*max(max(img));
 %     img(img<a) = 0;      
 %     img(img>b) = 255;
@@ -48,11 +48,11 @@ for j=1:dist_num_files
  
 
     % Dilate spots so spots that are close by merge together
-    se = strel('disk',3);
-    img = imdilate(img,se);
     se = strel('disk',4);
+    img = imdilate(img,se);
+    se = strel('disk',6);
     img = imerode(img,se);
-     se = strel('disk',15);
+     se = strel('disk',7);
     img = imdilate(img,se);
 %     subplot(6,6,j);
 %     imagesc(img);
@@ -75,8 +75,8 @@ end
 % scatter([1:dist_num_files],dist_feat1);
 % figure
 % scatter([1:dist_num_files],dist_feat2);
-% figure
-% plot(dist_feat1(dist_labels==0), dist_feat2(dist_labels==0), 'r.', 'markersize', 5)
-% hold on
-% plot(dist_feat1(dist_labels==1), dist_feat2(dist_labels==1), 'g.', 'markersize', 5)
-% hold off
+figure
+plot(dist_feat1(dist_labels==0), dist_feat2(dist_labels==0), 'r.', 'markersize', 5)
+hold on
+plot(dist_feat1(dist_labels==1), dist_feat2(dist_labels==1), 'g.', 'markersize', 5)
+hold off

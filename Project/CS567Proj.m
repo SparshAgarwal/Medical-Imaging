@@ -1,6 +1,6 @@
 path='/Users/sparshagarwal/OneDrive/Spring 2018/CS 567/Medical-Imaging/Project/distributed/';
 hiddenpath='/Users/sparshagarwal/OneDrive/Spring 2018/CS 567/Medical-Imaging/Project/distributed/';
-labelshidden = [];
+labelshidden = [zeros(1,18),ones(1,18)];
 
 % 36 images
 a=dir([path '/*.ppm']);
@@ -76,13 +76,13 @@ for j = 1:numimages
     feat2(1,j) = sum(sum(img));
 end
 
-% feat1(feat1<=1) = 0;
-% feat1(feat1>1) = 1;
-% 
-% threshold = 2500;
-% 
-% feat2(feat2<=threshold) = 0;
-% feat2(feat2>threshold) = 1;
+feat1(feat1<=1) = 0;
+feat1(feat1>1) = 1;
+
+threshold = 2500;
+
+feat2(feat2<=threshold) = 0;
+feat2(feat2>threshold) = 1;
 
 %(18-sum(feat1(1:18)))/18
 %(sum(feat1(19:36)))/18
@@ -271,13 +271,16 @@ for j = 1:numimages
     feat2hidden(1,j) = sum(sum(img));
 end
 
-feat1hidden(feat1hidden<=1) = 0;
-feat1hidden(feat1hidden>1) = 1;
+% feat1hidden(feat1hidden<=1) = 0;
+% feat1hidden(feat1hidden>1) = 1;
+% 
+% threshold = 2500;
+% 
+% feat2hidden(feat2hidden<=threshold) = 0;
+% feat2hidden(feat2hidden>threshold) = 1;
 
-threshold = 2500;
 
-feat2hidden(feat2hidden<=threshold) = 0;
-feat2hidden(feat2hidden>threshold) = 1;
+
 
 feathidden = [feat1hidden', feat2hidden'];
 
@@ -286,6 +289,17 @@ test = feathidden;
 
 labels = zeros(1,36);
 labels(19:36) = 1;
+
+% figure
+% plot(dist_feat1(labels==0), dist_feat2(dist_labels==0), 'r.', 'markersize', 10)
+% hold on
+% plot(dist_feat1(labels==1), dist_feat2(dist_labels==1), 'g.', 'markersize', 10)
+% hold off
+figure
+plot(feat1hidden(labels==0), feat2hidden(labels==0), 'b.', 'markersize', 10)
+hold on
+plot(feat1hidden(labels==1), feat2hidden(labels==1), 'y.', 'markersize', 10)
+hold off
     
 nfeat = size(train, 2);
     
